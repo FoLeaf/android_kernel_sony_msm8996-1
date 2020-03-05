@@ -434,13 +434,8 @@ sg_read(struct file *filp, char __user *buf, size_t count, loff_t * ppos)
 	struct sg_header *old_hdr = NULL;
 	int retval = 0;
 
-	/*
-	 * This could cause a response to be stranded. Close the associated
-	 * file descriptor to free up any resources being held.
-	 */
-	retval = sg_check_file_access(filp, __func__);
-	if (retval)
-		return retval;
+	if (unlikely(segment_eq(get_fs(), KERNEL_DS)))
+		return -EINVAL;
 
 	if ((!(sfp = (Sg_fd *) filp->private_data)) || (!(sdp = sfp->parentdp)))
 		return -ENXIO;
@@ -1069,6 +1064,7 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 				return -EBUSY;
 			}
 
+			mutex_lock(&sfp->parentdp->open_rel_lock);
 			sg_remove_scat(sfp, &sfp->reserve);
 			sg_build_reserve(sfp, val);
 			mutex_unlock(&sfp->parentdp->open_rel_lock);

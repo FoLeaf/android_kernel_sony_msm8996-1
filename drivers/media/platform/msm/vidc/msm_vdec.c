@@ -21,7 +21,6 @@
 
 #define MSM_VDEC_DVC_NAME "msm_vdec_8974"
 #define MIN_NUM_OUTPUT_BUFFERS 4
-#define MIN_NUM_OUTPUT_BUFFERS_VP9 6
 #define MIN_NUM_OUTPUT_BUFFERS_HEVC 5
 #define MIN_NUM_CAPTURE_BUFFERS 6
 #define MIN_NUM_THUMBNAIL_MODE_CAPTURE_BUFFERS 1
@@ -1297,8 +1296,8 @@ int msm_vdec_s_fmt(struct msm_vidc_inst *inst, struct v4l2_format *f)
 					inst->prop.width[CAPTURE_PORT]);
 		}
 
-		f->fmt.pix_mp.num_planes = inst->fmts[fmt->type].num_planes;
-		for (i = 0; i < inst->fmts[fmt->type].num_planes; ++i) {
+		f->fmt.pix_mp.num_planes = fmt->num_planes;
+		for (i = 0; i < fmt->num_planes; ++i) {
 			inst->bufq[CAPTURE_PORT].vb2_bufq.plane_sizes[i] =
 				f->fmt.pix_mp.plane_fmt[i].sizeimage;
 		}
@@ -1485,16 +1484,6 @@ static int msm_vdec_queue_setup(struct vb2_queue *q,
 		if (*num_buffers < MIN_NUM_OUTPUT_BUFFERS ||
 				*num_buffers > MAX_NUM_OUTPUT_BUFFERS)
 			*num_buffers = MIN_NUM_OUTPUT_BUFFERS;
-		/*
-		 * Increase input buffer count to 6 as for some
-		 * vp9 clips which have superframes with more
-		 * than 4 subframes requires more than 4
-		 * reference frames to decode.
-		 */
-		if (inst->fmts[OUTPUT_PORT].fourcc ==
-				V4L2_PIX_FMT_VP9 &&
-				*num_buffers < MIN_NUM_OUTPUT_BUFFERS_VP9)
-			*num_buffers = MIN_NUM_OUTPUT_BUFFERS_VP9;
 		else if (inst->fmts[OUTPUT_PORT].fourcc ==
 				V4L2_PIX_FMT_HEVC &&
 				*num_buffers < MIN_NUM_OUTPUT_BUFFERS_HEVC)
