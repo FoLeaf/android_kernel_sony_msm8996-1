@@ -22,6 +22,7 @@
 #include <linux/uaccess.h>
 #include <soc/qcom/subsystem_notif.h>
 #include <soc/qcom/smem.h>
+#include <asm/io.h>
 
 #define ERRLOG_SIG 0x48484814
 

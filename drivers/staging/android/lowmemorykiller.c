@@ -75,8 +75,8 @@ module_param_named(enable_lmk, enable_lmk, int,
 #include "lowmemorykiller_tng.h"
 #endif
 
-static uint32_t lowmem_debug_level = 1;
-static short lowmem_adj[6] = {
+uint32_t lowmem_debug_level = 1;
+short lowmem_adj[6] = {
 	0,
 	1,
 	6,
@@ -622,8 +622,10 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 				     selected->comm,
 				     selected->pid);
 			rcu_read_unlock();
-			mutex_unlock(&scan_mutex);
-			return 0;
+				trace_lmk_remain_scan(rem, sc->nr_to_scan,
+						      sc->gfp_mask);
+				lmk_inc_stats(LMK_TIMEOUT);
+				return SHRINK_STOP;
 		}
 
 		lowmem_print(1, "Killing '%s' (%d), adj %hd,\n" \
